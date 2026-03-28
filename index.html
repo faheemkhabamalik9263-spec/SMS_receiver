@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual SMS Receiver - Get OTP Online</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .api-config {
+            background: #f8f9fa;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .input-group input, 
+        .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus, 
+        .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        }
+
+        .number-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .number-item {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            transition: all 0.3s;
+            border: 1px solid #e9ecef;
+        }
+
+        .number-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .number {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            font-family: monospace;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .status.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.waiting {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .sms-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .sms-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+            transition: all 0.2s;
+        }
+
+        .sms-item:hover {
+            background: #e9ecef;
+        }
+
+        .sms-time {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .sms-sender {
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .sms-text {
+            color: #555;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .otp-badge {
+            display: inline-block;
+            background: #ffc107;
+            color: #856404;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+
+        .loader {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .loader::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            border: 2px solid #667eea;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .flex {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .number-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .flex {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Virtual SMS Receiver</h1>
+            <p>Get virtual numbers and receive OTP codes instantly</p>
+        </div>
+
+        <div class="card api-config">
+            <h2>⚙️ Configuration</h2>
+            <div class="input-group">
+                <label>🔑 API Key</label>
+                <input type="text" id="apiKey" value="1e684dfe0473c8ebf068Adc24b849eA4" placeholder="Enter your API key">
+            </div>
+            <div class="input-group">
+                <label>🌍 Country (Optional)</label>
+                <select id="country">
+                    <option value="">Any Country</option>
+                    <option value="US">🇺🇸 United States (+1)</option>
+                    <option value="UK">🇬🇧 United Kingdom (+44)</option>
+                    <option value="CA">🇨🇦 Canada (+1)</option>
+                    <option value="AU">🇦🇺 Australia (+61)</option>
+                    <option value="DE">🇩🇪 Germany (+49)</option>
+                    <option value="FR">🇫🇷 France (+33)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📞 Virtual Numbers</h2>
+            <div class="flex">
+                <button id="getNumberBtn" onclick="getVirtualNumber()">➕ Get New Number</button>
+                <button onclick="refreshAllNumbers()" class="btn-secondary">🔄 Refresh All</button>
+            </div>
+            <div id="numbersContainer" class="number-list" style="margin-top: 20px;">
+                <div class="loader">Click "Get New Number" to start...</div>
+            </div>
+        </div>
+
+        <div class="card" id="smsCard" style="display: none;">
+            <h2>📨 Received Messages & OTPs</h2>
+            <div id="smsContainer" class="sms-list"></div>
+            <button onclick="checkAllMessages()" class="btn-secondary" style="margin-top: 15px; width: 100%;">🔄 Check for New Messages</button>
+        </div>
+    </div>
+
+    <script>
+        let activeNumbers = [];
+
+        // API call through Netlify function
+        async function callAPI(action, params = {}) {
+            const apiKey = document.getElementById('apiKey').value;
+            
+            if (!apiKey) {
+                throw new Error('Please enter API key');
+            }
+            
+            const response = await fetch('/.netlify/functions/proxy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    apiKey: apiKey,
+                    action: action,
+                    params: params
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'API call failed');
+            }
+            
+            return data.result;
+        }
+
+        // Get virtual number
+        async function getVirtualNumber() {
+            const btn = document.getElementById('getNumberBtn');
+            const container = document.getElementById('numbersContainer');
+            const country = document.getElementById('country').value;
+            
+            btn.disabled = true;
+            container.innerHTML = '<div class="loader">Requesting virtual number...</div>';
+            
+            try {
+                const params = {};
+                if (country) params.country = country;
+                
+                const result = await callAPI('getNumber', params);
+                
+                if (result.startsWith('ACCESS_NUMBER:')) {
+                    const number = result.split(':')[1];
+                    const id = Date.now();
+                    
+                    activeNumbers.push({
+                        id: id,
+                        number: number,
+                        status: 'active',
+                        messages: [],
+                        createdAt: new Date()
+                    });
+                    
+                    displayNumbers();
+                    showToast('success', `✅ Number ${number} acquired successfully!`);
+                } else if (result === 'NO_NUMBERS') {
+                    container.innerHTML = '<div class="error">❌ No numbers available. Please try again later.</div>';
+                    setTimeout(() => displayNumbers(), 3000);
+                } else {
+                    container.innerHTML = `<div class="error">❌ Error: ${result}</div>`;
+                    setTimeout(() => displayNumbers(), 3000);
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="error">❌ ${error.message}</div>`;
+                setTimeout(() => displayNumbers(), 3000);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // Get messages for a number
+        async function getMessages(number) {
+            try {
+                const result = await callAPI('getMessages', { number: number });
+                return result;
+            } catch (error) {
+                console.error('Error getting messages:', error);
+                return `ERROR: ${error.message}`;
+            }
+        }
+
+        // Set status for a number
+        async function setNumberStatus(number, status) {
+            try {
+                return await callAPI('setStatus', { number: number, status: status });
+            } catch (error) {
+                console.error('Error setting status:', error);
+                return `ERROR: ${error.message}`;
+            }
+        }
+
+        // View messages for a specific number
+        async function viewMessages(index) {
+            const numberItem = activeNumbers[index];
+            if (!numberItem) return;
+            
+            const smsCard = document.getElementById('smsCard');
+            const smsContainer = document.getElementById('smsContainer');
+            
+            smsCard.style.display = 'block';
+            smsContainer.innerHTML = '<div class="loader">Loading messages...</div>';
+            
+            const result = await getMessages(numberItem.number);
+            
+            if (result === 'NO_MESSAGES') {
+                smsContainer.innerHTML = '<div class="error">📭 No messages received yet. Check again in a few moments.</div>';
+                return;
+            }
+            
+            if (result.startsWith('MESSAGES:')) {
+                const messagesData = result.substring(9);
+                const messages = parseMessages(messagesData);
+                
+                numberItem.messages = messages;
+                
+                if (messages.length === 0) {
+                    smsContainer.innerHTML = '<div class="error">📭 No messages found.</div>';
+                } else {
+                    smsContainer.innerHTML = messages.map(msg => `
+                        <div class="sms-item">
+                            <div class="sms-time">📅 ${msg.time}</div>
+                            <div class="sms-sender">📱 From: ${escapeHtml(msg.sender || 'Unknown')}</div>
+                            <div class="sms-text">${escapeHtml(msg.text)}</div>
+                            ${detectOTP(msg.text) ? `<div class="otp-badge">🔑 OTP Detected: ${detectOTP(msg.text)}</div>` : ''}
+                        </div>
+                    `).join('');
+                    
+                    showToast('success', `📨 Found ${messages.length} message(s)`);
+                }
+            } else {
+                smsContainer.innerHTML = `<div class="error">❌ Error: ${escapeHtml(result)}</div>`;
+            }
+        }
+
+        // Release a number
+        async function releaseNumber(index) {
+            const numberItem = activeNumbers[index];
+            if (!numberItem) return;
+            
+            if (!confirm(`Are you sure you want to release ${numberItem.number}?`)) {
+                return;
+            }
+            
+            const result = await setNumberStatus(numberItem.number, 6);
+            
+            if (result === 'ACCESS_READY') {
+                activeNumbers.splice(index, 1);
+                displayNumbers();
+                showToast('success', `✅ Number ${numberItem.number} released successfully`);
+                
+                if (activeNumbers.length === 0) {
+                    document.getElementById('smsCard').style.display = 'none';
+                }
+            } else {
+                showToast('error', `❌ Failed to release number: ${result}`);
+            }
+        }
+
+        // Refresh all numbers
+        async function refreshAllNumbers() {
+            if (activeNumbers.length === 0) {
+                showToast('info', 'No active numbers to refresh');
+                return;
+            }
+            
+            showToast('info', '🔄 Refreshing all numbers...');
+            for (let i = 0; i < activeNumbers.length; i++) {
+                await viewMessages(i);
+            }
+        }
+
+        // Check all messages
+        async function checkAllMessages() {
+            if (activeNumbers.length === 0) {
+                showToast('info', 'No active numbers');
+                return;
+            }
+            
+            showToast('info', '🔄 Checking for new messages...');
+            for (let i = 0; i < activeNumbers.length; i++) {
+                await viewMessages(i);
+            }
+        }
+
+        // Display all numbers
+        function displayNumbers() {
+            const container = document.getElementById('numbersContainer');
+            
+            if (activeNumbers.length === 0) {
+                container.innerHTML = '<div class="loader">No numbers yet. Click "Get New Number" to start...</div>';
+                return;
+            }
+            
+            container.innerHTML = activeNumbers.map((item, index) => `
+                <div class="number-item">
+                    <div>
+                        <div class="number">📞 ${item.number}</div>
+                        <div class="status ${item.status}">● ${item.status.toUpperCase()}</div>
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                            ${item.messages.length} message(s) received
+                        </div>
+                    </div>
+                    <div class="flex">
+                        <button onclick="viewMessages(${index})" class="btn-info">📨 View SMS</button>
+                        <button onclick="releaseNumber(${index})" class="btn-danger">🗑️ Release</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Parse messages from API response
+        function parseMessages(data) {
+            const messages = [];
+            const lines = data.split('\n');
+            
+            for (let line of lines) {
+                if (line.trim()) {
+                    const parts = line.split('|');
+                    if (parts.length >= 2) {
+                        messages.push({
+                            sender: parts[0].trim(),
+                            text: parts.slice(1).join('|').trim(),
+                            time: new Date().toLocaleString()
+                        });
+                    } else {
+                        messages.push({
+                            sender: 'Unknown',
+                            text: line.trim(),
+                            time: new Date().toLocaleString()
+                        });
+                    }
+                }
+            }
+            
+            return messages;
+        }
+
+        // Detect OTP in text
+        function detectOTP(text) {
+            const patterns = [
+                /\b\d{4}\b/g,
+                /\b\d{5}\b/g,
+                /\b\d{6}\b/g,
+                /OTP[:\s]*(\d{4,6})/i,
+                /code[:\s]*(\d{4,6})/i,
+                /verification[:\s]*(\d{4,6})/i
+            ];
+            
+            for (let pattern of patterns) {
+                const match = text.match(pattern);
+                if (match) {
+                    return match[0].match(/\d{4,6}/) ? match[0].match(/\d{4,6}/)[0] : match[0];
+                }
+            }
+            return null;
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Show toast notification
+        function showToast(type, message) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type === 'success' ? 'success' : type === 'error' ? 'error' : 'success'}`;
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 10px;
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+                box-shadow: 0 5px 15px rgba(0,0,0,0
